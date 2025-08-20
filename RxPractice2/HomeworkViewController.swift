@@ -5,8 +5,10 @@
 //  Created by Jack on 1/30/25.
 //
 
-import UIKit
 import SnapKit
+import RxCocoa
+import RxSwift
+import UIKit
 
 struct Person: Identifiable {
     let id = UUID()
@@ -74,7 +76,11 @@ class HomeworkViewController: UIViewController {
     let tableView = UITableView()
     lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout())
     let searchBar = UISearchBar()
-     
+    
+    private lazy var items = Observable.just(sampleUsers)
+    private let selectedItems = BehaviorSubject<[String]>(value: [])
+    private let disposeBag = DisposeBag()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configure()
@@ -82,7 +88,31 @@ class HomeworkViewController: UIViewController {
     }
      
     private func bind() {
-          
+        items.bind(to: tableView.rx.items) { tableView, row, element in
+            let cell = tableView.dequeueReusableCell(withIdentifier: PersonTableViewCell.identifier) as! PersonTableViewCell
+            cell.usernameLabel.text = element.name
+            return cell
+        }
+        .disposed(by: disposeBag)
+        
+        selectedItems
+            .bind(to: collectionView.rx.items(
+                cellIdentifier: UserCollectionViewCell.identifier,
+                cellType: UserCollectionViewCell.self
+            )) { row, item, cell in
+                cell.label.text = item
+            }
+            .disposed(by: disposeBag)
+        
+        tableView.rx
+            .modelSelected(Person.self)
+            .subscribe(with: self) { owner, value in
+                var all = try! owner.selectedItems.value()
+                all.append(value.name)
+                owner.selectedItems.onNext(all)
+                print(all)
+            }
+            .disposed(by: disposeBag)
     }
     
     private func configure() {
@@ -117,6 +147,5 @@ class HomeworkViewController: UIViewController {
         layout.scrollDirection = .horizontal
         return layout
     }
-
 }
  
