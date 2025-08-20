@@ -9,6 +9,7 @@ import SnapKit
 import RxCocoa
 import RxSwift
 import UIKit
+import Kingfisher
 
 struct Person: Identifiable {
     let id = UUID()
@@ -77,7 +78,7 @@ class HomeworkViewController: UIViewController {
     lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout())
     let searchBar = UISearchBar()
     
-    private lazy var items = Observable.just(sampleUsers)
+    private lazy var items = BehaviorSubject<[Person]>(value: sampleUsers)
     private let selectedItems = BehaviorSubject<[String]>(value: [])
     private let disposeBag = DisposeBag()
     
@@ -91,6 +92,9 @@ class HomeworkViewController: UIViewController {
         items.bind(to: tableView.rx.items) { tableView, row, element in
             let cell = tableView.dequeueReusableCell(withIdentifier: PersonTableViewCell.identifier) as! PersonTableViewCell
             cell.usernameLabel.text = element.name
+            
+            guard let url = URL(string: element.profileImage) else { return UITableViewCell() }
+            cell.profileImageView.kf.setImage(with: url)
             return cell
         }
         .disposed(by: disposeBag)
@@ -113,6 +117,18 @@ class HomeworkViewController: UIViewController {
                 print(all)
             }
             .disposed(by: disposeBag)
+        
+        searchBar.rx.searchButtonClicked
+            .subscribe(with: self) { owner, _ in
+                var all = try! owner.items.value()
+                
+                let person = Person(name: owner.searchBar.text!, email: "ddd@example.com", profileImage: "https://randomuser.me/api/portraits/thumb/men/26.jpg")
+                all.append(person)
+                owner.items.onNext(all)
+                
+            }
+            .disposed(by: disposeBag)
+
     }
     
     private func configure() {
