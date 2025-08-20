@@ -25,6 +25,10 @@ final class HomeworkCollectionViewCell: UICollectionViewCell {
         setUpUI()
     }
     
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     private func setUpUI() {
         var config = UIBackgroundConfiguration.clear()
         config.backgroundColor = .gray
@@ -38,9 +42,5 @@ final class HomeworkCollectionViewCell: UICollectionViewCell {
         label.snp.makeConstraints { make in
             make.center.equalToSuperview()
         }
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }

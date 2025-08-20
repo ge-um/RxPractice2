@@ -37,9 +37,14 @@ class HomeworkViewController: UIViewController {
         return tableView
     }()
     
+    let disposeBag = DisposeBag()
+    
+    private let items = BehaviorSubject(value: ["Steven", "Mike", "Emma", "James", "Lisa", "John", "Sarah"])
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setUpUI()
+        bind()
     }
     
     private func setUpUI() {
@@ -63,5 +68,13 @@ class HomeworkViewController: UIViewController {
             make.top.equalTo(collectionView.snp.bottom)
             make.bottom.horizontalEdges.equalTo(view.safeAreaLayoutGuide)
         }
+    }
+    
+    private func bind() {
+        items
+            .bind(to: collectionView.rx.items(cellIdentifier: HomeworkCollectionViewCell.identifier, cellType: HomeworkCollectionViewCell.self)) { row, item, cell in
+                cell.label.text = item
+            }
+            .disposed(by: disposeBag)
     }
 }
