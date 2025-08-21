@@ -17,15 +17,15 @@ final class HomeworkViewModel {
     }
     
     struct Output {
-        let items: BehaviorSubject<[Person]>
-        let selectedItems: BehaviorSubject<[Person]>
+        let items: BehaviorRelay<[Person]>
+        let selectedItems: BehaviorRelay<[Person]>
     }
     
     private let disposeBag = DisposeBag()
     
     func transform(input: Input) -> Output {
-        let items = BehaviorSubject(value: Person.sampleUsers)
-        let selectedItems = BehaviorSubject<[Person]>(value: [])
+        let items = BehaviorRelay(value: Person.sampleUsers)
+        let selectedItems = BehaviorRelay<[Person]>(value: [])
         
         input.modelSelected
             .withLatestFrom(selectedItems) { new, selectedItems in
