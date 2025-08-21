@@ -95,9 +95,19 @@ class HomeworkViewController: UIViewController {
             
             guard let url = URL(string: element.profileImage) else { return UITableViewCell() }
             cell.profileImageView.kf.setImage(with: url)
+            
+            cell.detailButton.rx.tap
+                .bind(with: self) { owner, _ in
+                    let vc = UIViewController()
+                    vc.view.backgroundColor = .white
+                    owner.navigationController?.pushViewController(vc, animated: true)
+                }
+                .disposed(by: cell.disposeBag)
+            
             return cell
         }
         .disposed(by: disposeBag)
+        
         
         selectedItems
             .bind(to: collectionView.rx.items(
