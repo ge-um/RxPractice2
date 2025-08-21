@@ -80,6 +80,8 @@ class HomeworkViewController: UIViewController {
     
     private lazy var items = BehaviorSubject<[Person]>(value: sampleUsers)
     private let selectedItems = BehaviorSubject<[String]>(value: [])
+    
+    
     private let disposeBag = DisposeBag()
     
     override func viewDidLoad() {
@@ -100,6 +102,7 @@ class HomeworkViewController: UIViewController {
                 .bind(with: self) { owner, _ in
                     let vc = UIViewController()
                     vc.view.backgroundColor = .white
+                    vc.navigationItem.title = element.name
                     owner.navigationController?.pushViewController(vc, animated: true)
                 }
                 .disposed(by: cell.disposeBag)
@@ -107,7 +110,6 @@ class HomeworkViewController: UIViewController {
             return cell
         }
         .disposed(by: disposeBag)
-        
         
         selectedItems
             .bind(to: collectionView.rx.items(
