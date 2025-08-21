@@ -81,5 +81,11 @@ final class PersonTableViewCell: UITableViewCell {
             $0.width.equalTo(72)
         }
     }
+    
+    func configure(with data: Person) {
+        usernameLabel.text = data.name
+        guard let url = URL(string: data.profileImage) else { return }
+        profileImageView.kf.setImage(with: url)
+    }
 }
 

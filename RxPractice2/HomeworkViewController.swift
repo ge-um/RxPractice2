@@ -16,10 +16,7 @@ class HomeworkViewController: UIViewController {
     lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout())
     let searchBar = UISearchBar()
     
-    private lazy var items = BehaviorSubject<[Person]>(value: Person.sampleUsers)
-    private let selectedItems = BehaviorSubject<[String]>(value: [])
-    
-    
+    private let viewModel = HomeworkViewModel()
     private let disposeBag = DisposeBag()
     
     override func viewDidLoad() {
@@ -29,53 +26,34 @@ class HomeworkViewController: UIViewController {
     }
      
     private func bind() {
-        items.bind(to: tableView.rx.items) { tableView, row, element in
-            let cell = tableView.dequeueReusableCell(withIdentifier: PersonTableViewCell.identifier) as! PersonTableViewCell
-            cell.usernameLabel.text = element.name
-            
-            guard let url = URL(string: element.profileImage) else { return UITableViewCell() }
-            cell.profileImageView.kf.setImage(with: url)
-            
+        let input = HomeworkViewModel.Input(
+            modelSelected: tableView.rx.modelSelected(Person.self),
+            searchText: searchBar.rx.text.orEmpty,
+            searchButtonClick: searchBar.rx.searchButtonClicked
+        )
+        let output = viewModel.transform(input: input)
+        
+        output.items.bind(to: tableView.rx.items(cellIdentifier: PersonTableViewCell.identifier, cellType: PersonTableViewCell.self)) { row, element, cell in
+            cell.configure(with: element)
+
             cell.detailButton.rx.tap
-                .bind(with: self) { owner, _ in
+                .map { element }
+                .bind(with: self) { owner, person in
                     let vc = UIViewController()
                     vc.view.backgroundColor = .white
                     vc.navigationItem.title = element.name
                     owner.navigationController?.pushViewController(vc, animated: true)
                 }
                 .disposed(by: cell.disposeBag)
-            
-            return cell
         }
         .disposed(by: disposeBag)
         
-        selectedItems
+        output.selectedItems
             .bind(to: collectionView.rx.items(
                 cellIdentifier: UserCollectionViewCell.identifier,
                 cellType: UserCollectionViewCell.self
             )) { row, item, cell in
-                cell.label.text = item
-            }
-            .disposed(by: disposeBag)
-        
-        tableView.rx
-            .modelSelected(Person.self)
-            .subscribe(with: self) { owner, value in
-                var all = try! owner.selectedItems.value()
-                all.append(value.name)
-                owner.selectedItems.onNext(all)
-                print(all)
-            }
-            .disposed(by: disposeBag)
-        
-        searchBar.rx.searchButtonClicked
-            .subscribe(with: self) { owner, _ in
-                var all = try! owner.items.value()
-                
-                let person = Person(name: owner.searchBar.text!, email: "ddd@example.com", profileImage: "https://randomuser.me/api/portraits/thumb/men/26.jpg")
-                all.append(person)
-                owner.items.onNext(all)
-                
+                cell.label.text = item.name
             }
             .disposed(by: disposeBag)
 
